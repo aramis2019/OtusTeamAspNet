@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PromoCodeFactory.WebHost.Models
 {
-    public class EmployeeDto
+    public class EmployeeResponse
     {
         public Guid Id { get; set; }
 

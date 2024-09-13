@@ -50,14 +50,14 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<EmployeeDto>> GetEmployeeByIdAsync(Guid id, CancellationToken cancellationToken)
+        public async Task<ActionResult<EmployeeResponse>> GetEmployeeByIdAsync(Guid id, CancellationToken cancellationToken)
         {
             var employee = await _employeeRepository.GetByIdAsync(id, cancellationToken);
 
             if (employee == null)
                 return NotFound();
 
-            var employeeModel = new EmployeeDto()
+            var employeeModel = new EmployeeResponse()
             {
                 Id = employee.Id,
                 Email = employee.Email,
@@ -95,7 +95,7 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// Создать сотрудника
         /// </summary>
         [HttpPost]
-        public async Task<ActionResult<EmployeeDto>> CreateEmployeeAsync(CreateEmployeeDto employeeDto, CancellationToken cancellationToken)
+        public async Task<ActionResult<EmployeeResponse>> CreateEmployeeAsync(CreateEmployeeDto employeeDto, CancellationToken cancellationToken)
         {
             var employee = new Employee()
             {
@@ -107,7 +107,7 @@ namespace PromoCodeFactory.WebHost.Controllers
 
             var newEmployee = await _employeeRepository.AddAsync(employee, cancellationToken);
 
-            var dto = new EmployeeDto
+            var dto = new EmployeeResponse
             {
                 FullName = newEmployee.FullName,
                 Email = newEmployee.Email,
@@ -121,7 +121,7 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// Обновить сотрудника
         /// </summary>
         [HttpPut("{id}")]
-        public async Task<ActionResult<EmployeeDto>> UpdateEmployeeAsync(Guid id, CreateEmployeeDto employeeDto, CancellationToken cancellationToken)
+        public async Task<ActionResult<EmployeeResponse>> UpdateEmployeeAsync(Guid id, CreateEmployeeDto employeeDto, CancellationToken cancellationToken)
         {
             var employee = await _employeeRepository.GetByIdAsync(id, cancellationToken);
 
@@ -133,7 +133,7 @@ namespace PromoCodeFactory.WebHost.Controllers
 
                 var updatedEmployee = await _employeeRepository.UpdateByIdAsync(id, employee, cancellationToken);
 
-                var dto = new EmployeeDto
+                var dto = new EmployeeResponse
                 {
                     FullName = updatedEmployee.FullName,
                     Email = updatedEmployee.Email,
