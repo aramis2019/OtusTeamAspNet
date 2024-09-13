@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using PromoCodeFactory.Core.Domain;
 using PromoCodeFactory.Core.Domain.Administration;
@@ -8,14 +9,14 @@ namespace PromoCodeFactory.Core.Abstractions.Repositories
 {
     public interface IRepository<T> where T: BaseEntity
     {
-        Task<IList<T>> GetAllAsync();
+        Task<IList<T>> GetAllAsync(CancellationToken cancellationToken);
 
-        Task<T> GetByIdAsync(Guid id);
+        Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
-        void RemoveByIdAsync(Guid id);
+        Task<bool> RemoveByIdAsync(Guid id, CancellationToken cancellationToken);
 
-        Task<T> UpdateByIdAsync(Guid id, T employee);
+        Task<T> UpdateByIdAsync(Guid id, T employee, CancellationToken cancellationToken);
 
-        Task<T> Add(T employee);
+        Task<T> AddAsync(T employee, CancellationToken cancellationToken);
     }
 }

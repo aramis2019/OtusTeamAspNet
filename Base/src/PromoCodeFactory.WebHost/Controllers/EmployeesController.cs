@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
@@ -29,9 +30,9 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<List<EmployeeShortResponse>> GetEmployeesAsync()
+        public async Task<List<EmployeeShortResponse>> GetEmployeesAsync(CancellationToken cancellationToken)
         {
-            var employees = await _employeeRepository.GetAllAsync();
+            var employees = await _employeeRepository.GetAllAsync(cancellationToken);
 
             var employeesModelList = employees.Select(x =>
                 new EmployeeShortResponse()
@@ -49,14 +50,14 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<EmployeeResponseDto>> GetEmployeeByIdAsync(Guid id)
+        public async Task<ActionResult<EmployeeDto>> GetEmployeeByIdAsync(Guid id, CancellationToken cancellationToken)
         {
-            var employee = await _employeeRepository.GetByIdAsync(id);
+            var employee = await _employeeRepository.GetByIdAsync(id, cancellationToken);
 
             if (employee == null)
                 return NotFound();
 
-            var employeeModel = new EmployeeResponseDto()
+            var employeeModel = new EmployeeDto()
             {
                 Id = employee.Id,
                 Email = employee.Email,
@@ -77,27 +78,25 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpDelete("{id}")]
-        public async Task<ActionResult> RemoveEmployeeByIdAsync(Guid id)
+        public async Task<ActionResult> RemoveEmployeeByIdAsync(Guid id, CancellationToken cancellationToken)
         {
-            var employee = await _employeeRepository.GetByIdAsync(id);
+            var employee = await _employeeRepository.GetByIdAsync(id, cancellationToken);
 
-            if (employee == null)
-                return NotFound();
+            if (employee != null)
+            {
+                await _employeeRepository.RemoveByIdAsync(employee.Id, cancellationToken);
+                return NoContent();
+            }
+            return NotFound();
 
-            _employeeRepository.RemoveByIdAsync(id);
-
-            return NoContent();
         }
 
         /// <summary>
         /// Создать сотрудника
         /// </summary>
         [HttpPost]
-        public async Task<ActionResult<EmployeeResponseDto>> CreateEmployee([FromBody] CreateEmployeeDto employeeDto)
+        public async Task<ActionResult<EmployeeDto>> CreateEmployeeAsync([FromBody] CreateEmployeeDto employeeDto, CancellationToken cancellationToken)
         {
-            if (employeeDto == null)
-                return BadRequest();
-
             var employee = new Employee()
             {
                 Id = Guid.NewGuid(),
@@ -106,9 +105,9 @@ namespace PromoCodeFactory.WebHost.Controllers
                 LastName = employeeDto.LastName
             };
 
-            var newEmployee = await _employeeRepository.Add(employee);
+            var newEmployee = await _employeeRepository.AddAsync(employee, cancellationToken);
 
-            var dto = new EmployeeResponseDto
+            var dto = new EmployeeDto
             {
                 FullName = newEmployee.FullName,
                 Email = newEmployee.Email,
@@ -122,12 +121,9 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// Обновить сотрудника
         /// </summary>
         [HttpPut("{id}")]
-        public async Task<ActionResult<EmployeeResponseDto>> UpdateEmployee(Guid id, [FromBody] CreateEmployeeDto employeeDto)
+        public async Task<ActionResult<EmployeeDto>> UpdateEmployeeAsync(Guid id, [FromBody] CreateEmployeeDto employeeDto, CancellationToken cancellationToken)
         {
-            if (employeeDto == null)
-                return BadRequest();
-
-            var employee = await _employeeRepository.GetByIdAsync(id);
+            var employee = await _employeeRepository.GetByIdAsync(id, cancellationToken);
 
             if (employee != null)
             {
@@ -135,9 +131,9 @@ namespace PromoCodeFactory.WebHost.Controllers
                 employee.Email = employeeDto.Email;
                 employee.LastName = employeeDto.LastName;
 
-                var updatedEmployee = await _employeeRepository.UpdateByIdAsync(id, employee);
+                var updatedEmployee = await _employeeRepository.UpdateByIdAsync(id, employee, cancellationToken);
 
-                var dto = new EmployeeResponseDto
+                var dto = new EmployeeDto
                 {
                     FullName = updatedEmployee.FullName,
                     Email = updatedEmployee.Email,
@@ -148,7 +144,6 @@ namespace PromoCodeFactory.WebHost.Controllers
             }
 
             return NotFound();
-
         }
     }
 }
