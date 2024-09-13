@@ -95,7 +95,7 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// Создать сотрудника
         /// </summary>
         [HttpPost]
-        public async Task<ActionResult<EmployeeDto>> CreateEmployeeAsync([FromBody] CreateEmployeeDto employeeDto, CancellationToken cancellationToken)
+        public async Task<ActionResult<EmployeeDto>> CreateEmployeeAsync(CreateEmployeeDto employeeDto, CancellationToken cancellationToken)
         {
             var employee = new Employee()
             {
@@ -121,7 +121,7 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// Обновить сотрудника
         /// </summary>
         [HttpPut("{id}")]
-        public async Task<ActionResult<EmployeeDto>> UpdateEmployeeAsync(Guid id, [FromBody] CreateEmployeeDto employeeDto, CancellationToken cancellationToken)
+        public async Task<ActionResult<EmployeeDto>> UpdateEmployeeAsync(Guid id, CreateEmployeeDto employeeDto, CancellationToken cancellationToken)
         {
             var employee = await _employeeRepository.GetByIdAsync(id, cancellationToken);
 
