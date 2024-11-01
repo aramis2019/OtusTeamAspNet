@@ -15,22 +15,17 @@ namespace PromoCodeFactory.DataAccess.Data
                 Email = "owner@somemail.ru",
                 FirstName = "Иван",
                 LastName = "Сергеев",
-                Roles = new List<Role>()
-                {
-                    Roles.FirstOrDefault(x => x.Name == "Admin")  
-                },
+                Roles = [Roles.FirstOrDefault(x => x.Name == "Admin")],
                 AppliedPromocodesCount = 5
             },
+
             new Employee()
             {
                 Id = Guid.Parse("f766e2bf-340a-46ea-bff3-f1700b435895"),
                 Email = "andreev@somemail.ru",
                 FirstName = "Петр",
                 LastName = "Андреев",
-                Roles = new List<Role>()
-                {
-                    Roles.FirstOrDefault(x => x.Name == "PartnerManager")  
-                },
+                Roles = [Roles.FirstOrDefault(x => x.Name == "PartnerManager")],
                 AppliedPromocodesCount = 10
             },
         };

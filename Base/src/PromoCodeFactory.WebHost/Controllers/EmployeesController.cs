@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using PromoCodeFactory.Core.Abstractions.Repositories;
 using PromoCodeFactory.Core.Domain.Administration;
@@ -28,9 +30,9 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<List<EmployeeShortResponse>> GetEmployeesAsync()
+        public async Task<List<EmployeeShortResponse>> GetEmployeesAsync(CancellationToken cancellationToken)
         {
-            var employees = await _employeeRepository.GetAllAsync();
+            var employees = await _employeeRepository.GetAllAsync(cancellationToken);
 
             var employeesModelList = employees.Select(x =>
                 new EmployeeShortResponse()
@@ -48,9 +50,9 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<EmployeeResponse>> GetEmployeeByIdAsync(Guid id)
+        public async Task<ActionResult<EmployeeResponse>> GetEmployeeByIdAsync(Guid id, CancellationToken cancellationToken)
         {
-            var employee = await _employeeRepository.GetByIdAsync(id);
+            var employee = await _employeeRepository.GetByIdAsync(id, cancellationToken);
 
             if (employee == null)
                 return NotFound();
@@ -68,7 +70,80 @@ namespace PromoCodeFactory.WebHost.Controllers
                 AppliedPromocodesCount = employee.AppliedPromocodesCount
             };
 
-            return employeeModel;
+            return Ok(employeeModel);
+        }
+
+        /// <summary>
+        /// Удалить сотрудника
+        /// </summary>
+        /// <returns></returns>
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> RemoveEmployeeByIdAsync(Guid id, CancellationToken cancellationToken)
+        {
+            var employee = await _employeeRepository.GetByIdAsync(id, cancellationToken);
+
+            if (employee != null)
+            {
+                await _employeeRepository.RemoveByIdAsync(employee.Id, cancellationToken);
+                return NoContent();
+            }
+            return NotFound();
+
+        }
+
+        /// <summary>
+        /// Создать сотрудника
+        /// </summary>
+        [HttpPost]
+        public async Task<ActionResult<EmployeeResponse>> CreateEmployeeAsync(CreateEmployeeDto employeeDto, CancellationToken cancellationToken)
+        {
+            var employee = new Employee()
+            {
+                Id = Guid.NewGuid(),
+                Email = employeeDto.Email,
+                FirstName = employeeDto.FirstName,
+                LastName = employeeDto.LastName
+            };
+
+            var newEmployee = await _employeeRepository.AddAsync(employee, cancellationToken);
+
+            var dto = new EmployeeResponse
+            {
+                FullName = newEmployee.FullName,
+                Email = newEmployee.Email,
+                Id = newEmployee.Id
+            };
+
+            return Created($"{Request.GetDisplayUrl()}/{dto.Id}", dto);
+        }
+
+        /// <summary>
+        /// Обновить сотрудника
+        /// </summary>
+        [HttpPut("{id}")]
+        public async Task<ActionResult<EmployeeResponse>> UpdateEmployeeAsync(Guid id, CreateEmployeeDto employeeDto, CancellationToken cancellationToken)
+        {
+            var employee = await _employeeRepository.GetByIdAsync(id, cancellationToken);
+
+            if (employee != null)
+            {
+                employee.FirstName = employeeDto.FirstName;
+                employee.Email = employeeDto.Email;
+                employee.LastName = employeeDto.LastName;
+
+                var updatedEmployee = await _employeeRepository.UpdateByIdAsync(id, employee, cancellationToken);
+
+                var dto = new EmployeeResponse
+                {
+                    FullName = updatedEmployee.FullName,
+                    Email = updatedEmployee.Email,
+                    Id = updatedEmployee.Id
+                };
+
+                return Ok(dto);
+            }
+
+            return NotFound();
         }
     }
 }
